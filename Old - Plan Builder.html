@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editable Project Planning Tool</title>
+    <script src="https://unpkg.com/react@18.2.0/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.snow.css" rel="stylesheet">
+    <script type="module">
+        import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js'
+      </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { createIcons, PlusCircle, Trash2 } = lucide;
+
+        const EmojiPicker = ({ onEmojiSelect, isOpen, onClose }) => {
+            if (!isOpen) return null;
+
+            React.useEffect(() => {
+                const picker = document.querySelector('emoji-picker');
+                if (picker) {
+                    picker.addEventListener('emoji-click', event => {
+                        onEmojiSelect(event.detail.unicode);
+                        onClose();
+                    });
+                }
+                
+                // Add click outside handler
+                const handleClickOutside = (event) => {
+                    const picker = document.querySelector('emoji-picker');
+                    if (picker && !picker.contains(event.target)) {
+                        onClose();
+                    }
+                };
+                
+                document.addEventListener('click', handleClickOutside);
+                
+                return () => {
+                    document.removeEventListener('click', handleClickOutside);
+                };
+            }, []);
+
+            return (
+                <div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-lg shadow-lg">
+                    <emoji-picker />
+                </div>
+            );
+        };
+
+        const Modal = ({ isOpen, onClose, children }) => {
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                    <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto m-4">
+                        <div className="p-6">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const TaskCreatorModal = ({ isOpen, onClose, onCreateTask, phaseStartDate, phaseEndDate }) => {
+            const [taskData, setTaskData] = React.useState({
+                id: Date.now().toString(),
+                title: "",
+                name: "",
+                description: "",
+                startDate: "",
+                endDate: "",
+                steps: [],
+                tips: [],
+                tools: [],
+                deliverables: []
+            });
+
+            const handleCreate = () => {
+                onCreateTask(taskData);
+                onClose();
+                // Reset form
+                setTaskData({
+                    id: Date.now().toString(),
+                    title: "",
+                    name: "",
+                    description: "",
+                    startDate: "",
+                    endDate: "",
+                    steps: [],
+                    tips: [],
+                    tools: [],
+                    deliverables: []
+                });
+            };
+
+            return (
+                <Modal isOpen={isOpen} onClose={onClose}>
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-semibold">Create New Task</h2>
+                        <button
+                            onClick={onClose}
+                            className="text-gray-500 hover:text-gray-700"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    
+                    <div className="space-y-6">
+                        <TaskEditor
+                            task={taskData}
+                            onTaskChange={setTaskData}
+                            phaseStartDate={phaseStartDate}
+                            phaseEndDate={phaseEndDate}
+                        />
+                        
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={onClose}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreate}
+                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                                Create Task
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
+            );
+        };
+
+        const icons = {
+            PlusCircle: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+            ),
+            Trash2: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+            )
+        };
+
+        // Basic Card Component
+        const Card = ({ children, className = "" }) => (
+            <div className={`bg-white rounded-lg shadow-lg ${className}`}>
+                {children}
+            </div>
+        );
+
+        // EditableText Component
+        const EditableText = ({ value, onChange, className = "", multiline = false }) => {
+            if (multiline) {
+                return (
+                    <textarea
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        className={`w-full p-1 border rounded hover:border-blue-500 ${className}`}
+                        rows="3"
+                    />
+                );
+            }
+            return (
+                <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    className={`w-full p-1 border rounded hover:border-blue-500 ${className}`}
+                />
+            );
+        };
+
+        // Date Range Picker Component
+        const DateRangePicker = ({ startDate, endDate, onChange, minDate, maxDate }) => {
+            return (
+                <div className="flex gap-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Start Date</label>
+                        <input
+                            type="date"
+                            value={startDate || ''}
+                            min={minDate || ''}
+                            max={endDate || maxDate || ''}
+                            onChange={(e) => {
+                                const newStartDate = e.target.value;
+                                if (!endDate || newStartDate <= endDate) {
+                                    onChange([newStartDate, endDate]);
+                                }
+                            }}
+                            className="p-2 border rounded"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1">End Date</label>
+                        <input
+                            type="date"
+                            value={endDate || ''}
+                            min={startDate || minDate || ''}
+                            max={maxDate || ''}
+                            onChange={(e) => {
+                                const newEndDate = e.target.value;
+                                if (!startDate || newEndDate >= startDate) {
+                                    onChange([startDate, newEndDate]);
+                                }
+                            }}
+                            className="p-2 border rounded"
+                        />
+                    </div>
+                </div>
+            );
+        };
+
+
+        // Rich Text Editor Component
+        const RichTextEditor = ({ value, onChange }) => {
+            const editorRef = React.useRef(null);
+            const quillRef = React.useRef(null);
+
+            React.useEffect(() => {
+                if (editorRef.current && !quillRef.current) {
+                    quillRef.current = new Quill(editorRef.current, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                ['bold', 'italic', 'underline'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                ['link']
+                            ]
+                        }
+                    });
+                    quillRef.current.root.innerHTML = value;
+                    quillRef.current.on('text-change', () => {
+                        onChange(quillRef.current.root.innerHTML);
+                    });
+                }
+            }, []);
+
+            return <div ref={editorRef} className="bg-white min-h-[100px]" />;
+        };
+
+        // EditableList Component
+        const EditableList = ({ items, onItemsChange, placeholder = "Add item..." }) => {
+            const [newItem, setNewItem] = React.useState("");
+
+            const addItem = () => {
+                if (newItem.trim()) {
+                    onItemsChange([...items, newItem.trim()]);
+                    setNewItem("");
+                }
+            };
+
+            const removeItem = (index) => {
+                const newItems = [...items];
+                newItems.splice(index, 1);
+                onItemsChange(newItems);
+            };
+
+            return (
+                <div className="space-y-2">
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={newItem}
+                            onChange={(e) => setNewItem(e.target.value)}
+                            placeholder={placeholder}
+                            className="flex-1 p-1 border rounded"
+                            onKeyPress={(e) => e.key === 'Enter' && addItem()}
+                        />
+                        <button
+                            onClick={addItem}
+                            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                            Add
+                        </button>
+                    </div>
+                    <ul className="space-y-1">
+                        {items.map((item, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                                <EditableText
+                                    value={item}
+                                    onChange={(newValue) => {
+                                        const newItems = [...items];
+                                        newItems[index] = newValue;
+                                        onItemsChange(newItems);
+                                    }}
+                                />
+                                <button
+                                    onClick={() => removeItem(index)}
+                                    className="text-red-500 hover:text-red-700"
+                                >
+                                    ✖
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        };
+
+        // Task Editor Component
+        const TaskEditor = ({ task, onTaskChange, onDelete, phaseStartDate, phaseEndDate }) => {
+            const [showTips, setShowTips] = React.useState(Boolean(task.tips?.length));
+            const [showTools, setShowTools] = React.useState(Boolean(task.tools?.length));
+            const [showDeliverables, setShowDeliverables] = React.useState(Boolean(task.deliverables?.length));
+
+            // Convert dates to YYYY-MM-DD format for input
+            const minDate = phaseStartDate ? new Date(phaseStartDate).toISOString().split('T')[0] : '';
+            const maxDate = phaseEndDate ? new Date(phaseEndDate).toISOString().split('T')[0] : '';
+
+            return (
+                <Card className="p-4 space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h3 className="font-semibold">Edit Task</h3>
+                        <button
+                            onClick={onDelete}
+                            className="text-red-500 hover:text-red-700"
+                        >
+                            Delete Task
+                        </button>
+                    </div>
+                    
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Title</label>
+                        <EditableText
+                            value={task.title || task.name}
+                            onChange={(title) => onTaskChange({ 
+                                ...task, 
+                                title,
+                                name: title  // Update both fields
+                            })}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Description</label>
+                        <EditableText
+                            value={task.description}
+                            onChange={(description) => onTaskChange({ ...task, description })}
+                            multiline
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Duration</label>
+                        <div className="flex gap-2">
+                            <input
+                                type="date"
+                                value={task.startDate || ''}
+                                min={phaseStartDate}
+                                max={phaseEndDate}
+                                onChange={(e) => onTaskChange({ 
+                                    ...task, 
+                                    startDate: e.target.value,
+                                    duration: calculateDuration(e.target.value, task.endDate)
+                                })}
+                                className="p-2 border rounded"
+                            />
+                            <input
+                                type="date"
+                                value={task.endDate || ''}
+                                min={phaseStartDate}
+                                max={phaseEndDate}
+                                onChange={(e) => onTaskChange({ 
+                                    ...task, 
+                                    endDate: e.target.value,
+                                    duration: calculateDuration(task.startDate, e.target.value)
+                                })}
+                                className="p-2 border rounded"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Implementation Steps</label>
+                        <div className="space-y-2">
+                            {(task.steps || []).map((step, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={step.completed || false}
+                                        onChange={(e) => {
+                                            const newSteps = [...task.steps];
+                                            newSteps[index] = { ...step, completed: e.target.checked };
+                                            onTaskChange({ ...task, steps: newSteps });
+                                        }}
+                                        className="w-4 h-4"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={step.text || step}
+                                        onChange={(e) => {
+                                            const newSteps = [...task.steps];
+                                            newSteps[index] = typeof step === 'string' 
+                                                ? { text: e.target.value, completed: false }
+                                                : { ...step, text: e.target.value };
+                                            onTaskChange({ ...task, steps: newSteps });
+                                        }}
+                                        className="flex-1 p-2 border rounded"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const newSteps = [...task.steps];
+                                            newSteps.splice(index, 1);
+                                            onTaskChange({ ...task, steps: newSteps });
+                                        }}
+                                        className="text-red-500 px-2 hover:text-red-700"
+                                    >
+                                        -
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                onClick={() => onTaskChange({
+                                    ...task,
+                                    steps: [...(task.steps || []), { text: '', completed: false }]
+                                })}
+                                className="text-blue-500 hover:text-blue-700"
+                            >
+                                + Add Step
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Tips Section */}
+                    <div>
+                        <div className="flex items-center justify-between">
+                            <label className="block text-sm font-medium mb-1">Tips & Best Practices</label>
+                            <button
+                                onClick={() => setShowTips(!showTips)}
+                                className="text-blue-500 hover:text-blue-700 px-2"
+                            >
+                                {showTips ? '-' : '+'}
+                            </button>
+                        </div>
+                        {showTips && (
+                            <EditableList
+                                items={task.tips || []}
+                                onItemsChange={(tips) => onTaskChange({ ...task, tips })}
+                                placeholder="Add tip..."
+                            />
+                        )}
+                    </div>
+
+                    {/* Tools Section */}
+                    <div>
+                        <div className="flex items-center justify-between">
+                            <label className="block text-sm font-medium mb-1">Tools</label>
+                            <button
+                                onClick={() => setShowTools(!showTools)}
+                                className="text-blue-500 hover:text-blue-700 px-2"
+                            >
+                                {showTools ? '-' : '+'}
+                            </button>
+                        </div>
+                        {showTools && (
+                            <EditableList
+                                items={task.tools || []}
+                                onItemsChange={(tools) => onTaskChange({ ...task, tools })}
+                                placeholder="Add tool..."
+                            />
+                        )}
+                    </div>
+
+                    {/* Deliverables Section */}
+                    <div>
+                        <div className="flex items-center justify-between">
+                            <label className="block text-sm font-medium mb-1">Deliverables</label>
+                            <button
+                                onClick={() => setShowDeliverables(!showDeliverables)}
+                                className="text-blue-500 hover:text-blue-700 px-2"
+                            >
+                                {showDeliverables ? '-' : '+'}
+                            </button>
+                        </div>
+                        {showDeliverables && (
+                            <EditableList
+                                items={task.deliverables || []}
+                                onItemsChange={(deliverables) => onTaskChange({ ...task, deliverables })}
+                                placeholder="Add deliverable..."
+                            />
+                        )}
+                    </div>
+                </Card>
+            );
+        };
+
+        const calculateDuration = (startDate, endDate) => {
+            if (!startDate || !endDate) return '';
+            const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
+            return `${days} day${days === 1 ? '' : 's'}`;
+        };
+
+        // Phase Editor Component
+        const PhaseEditor = ({ phase, onPhaseChange, onDelete, projectStartDate, projectEndDate }) => {
+            const [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
+            const [showTaskCreator, setShowTaskCreator] = React.useState(false);
+            const [expandedTaskId, setExpandedTaskId] = React.useState(null);
+
+            const calculateTaskProgress = (task) => {
+                if (task.steps?.length > 0) {
+                    const completedSteps = task.steps.filter(step => step.completed).length;
+                    return Math.round((completedSteps / task.steps.length) * 100);
+                }
+                return 0;
+            };
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div className="p-4 border-b">
+                        <div className="flex justify-between items-center mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="relative">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowEmojiPicker(!showEmojiPicker);
+                                        }}
+                                        className="w-8 h-8 flex items-center justify-center border-2 border-blue-500 rounded-full hover:bg-blue-50"
+                                    >
+                                        {phase.icon || '📌'}
+                                    </button>
+                                    {showEmojiPicker && (
+                                        <EmojiPicker
+                                            isOpen={true}
+                                            onClose={() => setShowEmojiPicker(false)}
+                                            onEmojiSelect={(emoji) => {
+                                                onPhaseChange({ ...phase, icon: emoji });
+                                                setShowEmojiPicker(false);
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                                <EditableText
+                                    value={phase.title}
+                                    onChange={(title) => onPhaseChange({ ...phase, title })}
+                                    className="text-lg font-semibold"
+                                />
+                            </div>
+                            <button
+                                onClick={onDelete}
+                                className="text-red-500 hover:text-red-700"
+                            >
+                                Delete Phase
+                            </button>
+                        </div>
+
+                        <DateRangePicker
+                            startDate={phase.startDate || ''}
+                            endDate={phase.endDate || ''}
+                            minDate={projectStartDate}
+                            maxDate={projectEndDate}
+                            onChange={([startDate, endDate]) => {
+                                onPhaseChange({ 
+                                    ...phase, 
+                                    startDate,
+                                    endDate,
+                                    date: `${startDate ? new Date(startDate).toLocaleDateString() : ''} - ${endDate ? new Date(endDate).toLocaleDateString() : ''}`
+                                });
+                            }}
+                        />
+                    </div>
+
+                    <div className="p-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-medium">Tasks</h3>
+                            <button
+                                onClick={() => setShowTaskCreator(true)}
+                                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
+                            >
+                                <icons.PlusCircle size={18} />
+                                Add Task
+                            </button>
+                        </div>
+
+                        <div className="space-y-2">
+                            {phase.tasks?.map((task) => (
+                                <div key={task.id} className="border rounded-lg">
+                                    <button
+                                        onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                                        className="w-full p-4 flex items-center justify-between hover:bg-gray-50"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span>{task.title || task.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            {task.startDate && task.endDate && (
+                                                <span className="text-sm text-gray-500">
+                                                    ⏱️ {calculateDuration(task.startDate, task.endDate)}
+                                                </span>
+                                            )}
+                                            {task.steps?.length > 0 && (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-24 bg-gray-200 rounded-full h-2">
+                                                        <div
+                                                            className="bg-blue-500 rounded-full h-2"
+                                                            style={{ width: `${calculateTaskProgress(task)}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-sm text-gray-500">
+                                                        {calculateTaskProgress(task)}%
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {expandedTaskId === task.id ? '🔼' : '🔽'}
+                                        </div>
+                                    </button>
+                                    {expandedTaskId === task.id && (
+                                        <div className="p-4 border-t bg-gray-50">
+                                            <TaskEditor
+                                                task={task}
+                                                phaseStartDate={phase.startDate}
+                                                phaseEndDate={phase.endDate}
+                                                onTaskChange={(updatedTask) => {
+                                                    const newTasks = [...phase.tasks];
+                                                    const index = newTasks.findIndex(t => t.id === task.id);
+                                                    newTasks[index] = updatedTask;
+                                                    onPhaseChange({ ...phase, tasks: newTasks });
+                                                }}
+                                                onDelete={() => {
+                                                    const newTasks = phase.tasks.filter(t => t.id !== task.id);
+                                                    onPhaseChange({ ...phase, tasks: newTasks });
+                                                    setExpandedTaskId(null);
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <TaskCreatorModal
+                        isOpen={showTaskCreator}
+                        onClose={() => setShowTaskCreator(false)}
+                        phaseStartDate={phase.startDate}
+                        phaseEndDate={phase.endDate}
+                        onCreateTask={(newTask) => {
+                            onPhaseChange({
+                                ...phase,
+                                tasks: [...(phase.tasks || []), newTask]
+                            });
+                        }}
+                    />
+                </div>
+            );
+        };
+
+        // Main Project Plan Component
+        const ProjectPlan = () => {
+            const [projects, setProjects] = React.useState(() => {
+                const savedProjects = localStorage.getItem('planBuilderProjects');
+                return savedProjects ? JSON.parse(savedProjects) : [];
+            });
+            
+            const [currentProjectId, setCurrentProjectId] = React.useState(null);
+            const [newProjectName, setNewProjectName] = React.useState('');
+            const [projectData, setProjectData] = React.useState(() => {
+                // Check for data in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const encodedData = urlParams.get('data');
+                
+                if (encodedData) {
+                    try {
+                        const decoded = JSON.parse(atob(encodedData));
+                        return {
+                            ...decoded,
+                            startDate: decoded.startDate || '',
+                            endDate: decoded.endDate || ''
+                        };
+                    } catch (e) {
+                        console.error('Error loading project data from URL');
+                    }
+                }
+                
+                // Fall back to default structure
+                return {
+                    title: "New Project",
+                    dateRange: "Project Date Range",
+                    startDate: '',
+                    endDate: '',
+                    phases: {},
+                    detailedTasks: {},
+                    completedTasks: {}
+                };
+            });
+
+    
+
+            const [activePhase, setActivePhase] = React.useState(null);
+            const [expandedTask, setExpandedTask] = React.useState(null);
+            const [isEditing, setIsEditing] = React.useState(false);
+
+            React.useEffect(() => {
+                createIcons();
+            }, []);
+
+            // Add this function to handle selecting a project
+            const handleSelectProject = (project) => {
+                setCurrentProjectId(project.id);
+                setProjectData(project.data || {
+                    title: project.name,
+                    dateRange: "Project Date Range",
+                    startDate: '',
+                    endDate: '',
+                    phases: {},
+                    detailedTasks: {},
+                    completedTasks: {}
+                });
+            };
+
+            React.useEffect(() => {
+                if (currentProjectId) {
+                    setProjects(prevProjects => {
+                        const updatedProjects = prevProjects.map(project => 
+                            project.id === currentProjectId 
+                                ? { ...project, data: projectData }
+                                : project
+                        );
+                        localStorage.setItem('planBuilderProjects', JSON.stringify(updatedProjects));
+                        return updatedProjects;
+                    });
+                }
+            }, [projectData, currentProjectId]);
+
+            const calculateTaskProgress = (task) => {
+                // If task has steps, calculate based on steps completion
+                if (task.steps?.length > 0) {
+                    const completedSteps = task.steps.filter(step => step.completed).length;
+                    return Math.round((completedSteps / task.steps.length) * 100);
+                }
+                // If no steps, use the task's completion status directly
+                return projectData.completedTasks[task.id] ? 100 : 0;
+            };
+
+            const calculatePhaseProgress = (phase) => {
+                if (!phase.tasks?.length) return 0;
+                
+                const taskProgressValues = phase.tasks.map(task => {
+                    // If task has steps, use steps progress
+                    if (task.steps?.length > 0) {
+                        const completedSteps = task.steps.filter(step => step.completed).length;
+                        return (completedSteps / task.steps.length) * 100;
+                    }
+                    // If no steps, use task completion status
+                    return projectData.completedTasks[task.id] ? 100 : 0;
+                });
+                
+                const totalProgress = taskProgressValues.reduce((sum, progress) => sum + progress, 0);
+                return Math.round(totalProgress / phase.tasks.length);
+            };
+
+            const addPhase = () => {
+                const phaseId = Date.now().toString();
+                setProjectData(prev => ({
+                    ...prev,
+                    phases: {
+                        ...prev.phases,
+                        [phaseId]: {
+                            title: "New Phase",
+                            date: "Date Range",
+                            icon: "📌",
+                            tasks: []
+                        }
+                    }
+                }));
+            };
+
+            
+
+            const exportData = () => {
+                const dataStr = `data:text/json;charset=utf-8,${encodeURIComponent(
+                    JSON.stringify(projectData)
+                )}`;
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute('href', dataStr);
+                downloadAnchor.setAttribute('download', 'project-plan.json');
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+            };
+
+            const importData = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const importedData = JSON.parse(e.target.result);
+                            setProjectData(importedData);
+                        } catch (err) {
+                            alert('Error importing file');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+
+            const saveAsHTML = () => {
+    try {
+        // Helper functions for calculating progress
+        const calculateTaskProgress = (task) => {
+            if (task.steps?.length > 0) {
+                const completedSteps = task.steps.filter(step => step.completed).length;
+                return Math.round((completedSteps / task.steps.length) * 100);
+            }
+            return projectData.completedTasks[task.id] ? 100 : 0;
+        };
+
+        const calculatePhaseProgress = (phase) => {
+            if (!phase.tasks?.length) return 0;
+            const taskProgressValues = phase.tasks.map(task => calculateTaskProgress(task));
+            const totalProgress = taskProgressValues.reduce((sum, progress) => sum + progress, 0);
+            return Math.round(totalProgress / phase.tasks.length);
+        };
+
+        const projectProgress = Object.values(projectData.phases).reduce((sum, phase) => 
+            sum + calculatePhaseProgress(phase), 0) / Object.keys(projectData.phases).length;
+
+        let html = '<!DOCTYPE html>\n';
+        html += '<html>\n';
+        html += '<head>\n';
+        html += '  <title>' + projectData.title + '</title>\n';
+        html += '  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">\n';
+        html += '</head>\n';
+        html += '<body class="bg-gray-50">\n';
+        html += '  <div class="max-w-6xl mx-auto p-6">\n';
+        html += '    <div class="bg-white rounded-lg shadow-lg p-6">\n';
+        html += '      <h1 class="text-2xl font-bold">' + projectData.title + '</h1>\n';
+        html += '      <p class="text-gray-600 mt-2">' + projectData.dateRange + '</p>\n';
+        html += '      <p class="text-lg text-blue-600 mt-2">Overall Progress: ' + Math.round(projectProgress) + '%</p>\n';
+
+        // Timeline with progress
+        html += '      <div class="relative flex justify-between mb-12 mt-8">\n';
+        html += '        <div class="absolute h-1 bg-gray-200 left-0 right-0 top-4"></div>\n';
+        html += '        <div class="absolute h-1 bg-blue-500 left-0 top-4" style="width: ' + projectProgress + '%"></div>\n';
+        Object.entries(projectData.phases).forEach(([_, phase]) => {
+            html += '        <div class="relative flex flex-col items-center z-10">\n';
+            html += '          <div class="w-8 h-8 bg-white rounded-full border-2 border-blue-500 flex items-center justify-center">' + (phase.icon || '📋') + '</div>\n';
+            html += '          <div class="mt-2 text-sm text-center">\n';
+            html += '            <div class="font-semibold">' + phase.date + '</div>\n';
+            html += '            <div class="text-gray-500">' + phase.title + '</div>\n';
+            html += '          </div>\n';
+            html += '        </div>\n';
+        });
+        html += '      </div>\n';
+
+        // Phase Overview with progress bars
+        html += '      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">\n';
+        Object.entries(projectData.phases).forEach(([_, phase]) => {
+            const phaseProgress = calculatePhaseProgress(phase);
+            html += '        <div class="p-4 rounded-lg bg-gray-50 border border-gray-200">\n';
+            html += '          <div class="text-xl mb-1">' + (phase.icon || '📋') + '</div>\n';
+            html += '          <div class="font-semibold">' + phase.title + '</div>\n';
+            html += '          <div class="text-sm text-gray-500">' + phase.date + '</div>\n';
+            html += '          <div class="mt-2 bg-gray-200 rounded-full h-2">\n';
+            html += '            <div class="bg-blue-500 rounded-full h-2" style="width: ' + phaseProgress + '%"></div>\n';
+            html += '          </div>\n';
+            html += '          <div class="text-sm text-gray-500 mt-1">' + phaseProgress + '% complete</div>\n';
+            html += '        </div>\n';
+        });
+        html += '      </div>\n';
+
+        // Detailed Phase Sections with completion status
+        Object.entries(projectData.phases).forEach(([_, phase]) => {
+            const phaseProgress = calculatePhaseProgress(phase);
+            html += '      <div class="mb-8 bg-white rounded-lg shadow-lg">\n';
+            html += '        <div class="p-4 border-b">\n';
+            html += '          <h2 class="text-lg font-semibold flex items-center gap-2">' + phase.icon + ' ' + phase.title + 
+                    ' (' + phaseProgress + '% complete)</h2>\n';
+            html += '          <p class="text-sm text-gray-500">' + phase.date + '</p>\n';
+            html += '        </div>\n';
+            
+            html += '        <div class="p-4">\n';
+            if (phase.tasks && phase.tasks.length > 0) {
+                phase.tasks.forEach(task => {
+                    const taskProgress = calculateTaskProgress(task);
+                    html += '          <div class="border rounded-lg p-4 mb-4">\n';
+                    html += '            <div class="flex items-center gap-2">\n';
+                    // Show checkbox state
+                    html += '              <div class="w-5 h-5 border rounded flex items-center justify-center ' + 
+                           (projectData.completedTasks[task.id] ? 'bg-blue-500 text-white' : '') + '">' +
+                           (projectData.completedTasks[task.id] ? '✓' : '') + '</div>\n';
+                    html += '              <span class="font-medium ' + 
+                           (projectData.completedTasks[task.id] ? 'line-through text-gray-400' : '') + 
+                           '">' + task.name + '</span>\n';
+                    html += '              <span class="text-sm text-gray-500 ml-auto">⏱️ ' + (task.duration || '') + '</span>\n';
+                    html += '            </div>\n';
+
+                    // Task progress bar for tasks with steps
+                    if (task.steps?.length > 0) {
+                        html += '            <div class="mt-2 bg-gray-200 rounded-full h-1.5">\n';
+                        html += '              <div class="bg-blue-500 rounded-full h-1.5" style="width: ' + taskProgress + '%"></div>\n';
+                        html += '            </div>\n';
+                        html += '            <div class="text-xs text-gray-500 mt-1">' + taskProgress + '% complete</div>\n';
+                    }
+
+                    // Task Details
+                    if (task.steps || task.deliverables) {
+                        html += '            <div class="mt-4 pl-7">\n';
+                        
+                        // Steps with completion status
+                        if (task.steps?.length > 0) {
+                            html += '              <div class="mb-2">\n';
+                            html += '                <div class="font-medium mb-1">Steps:</div>\n';
+                            html += '                <ul class="list-none space-y-1">\n';
+                            task.steps.forEach(step => {
+                                if (typeof step === 'string') {
+                                    html += '                  <li class="flex items-center gap-2">' +
+                                           '<div class="w-4 h-4 border rounded"></div>' + step + '</li>\n';
+                                } else {
+                                    html += '                  <li class="flex items-center gap-2">' +
+                                           '<div class="w-4 h-4 border rounded flex items-center justify-center ' + 
+                                           (step.completed ? 'bg-blue-500 text-white' : '') + '">' +
+                                           (step.completed ? '✓' : '') + '</div>' +
+                                           '<span class="' + (step.completed ? 'line-through text-gray-400' : '') + 
+                                           '">' + step.text + '</span></li>\n';
+                                }
+                            });
+                            html += '                </ul>\n';
+                            html += '              </div>\n';
+                        }
+                        
+                        // Deliverables
+                        if (task.deliverables?.length > 0) {
+                            html += '              <div class="mt-4">\n';
+                            html += '                <div class="font-medium mb-1">Deliverables:</div>\n';
+                            html += '                <ul class="list-disc list-inside text-gray-600">\n';
+                            task.deliverables.forEach(deliverable => {
+                                html += '                  <li>' + deliverable + '</li>\n';
+                            });
+                            html += '                </ul>\n';
+                            html += '              </div>\n';
+                        }
+                        
+                        html += '            </div>\n';
+                    }
+                    html += '          </div>\n';
+                });
+            } else {
+                html += '          <p class="text-gray-500">No tasks in this phase</p>\n';
+            }
+            html += '        </div>\n';
+            html += '      </div>\n';
+        });
+
+        html += '    </div>\n';
+        html += '  </div>\n';
+        html += '</body>\n';
+        html += '</html>';
+
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'project-view.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('HTML Save failed:', error);
+        console.log('Project Data that failed:', projectData);
+        alert('Failed to save HTML version: ' + error.message);
+    }
+};
+
+
+            const calculateProjectProgress = (phases) => {
+                const phaseEntries = Object.entries(phases);
+                if (!phaseEntries.length) return 0;
+                
+                const phaseProgressValues = phaseEntries.map(([_, phase]) => calculatePhaseProgress(phase));
+                const totalProgress = phaseProgressValues.reduce((sum, progress) => sum + progress, 0);
+                return Math.round(totalProgress / phaseEntries.length);
+            };
+
+            return (
+                <div className="flex min-h-screen bg-gray-50">
+                    <div className="min-h-screen w-72 border-r border-gray-200 bg-white shadow-sm">
+                        <div className="p-6">
+                            <h2 className="text-lg font-semibold mb-4">Projects</h2>
+                            
+                            <div className="flex gap-2 mb-6">
+                                <input
+                                    type="text"
+                                    value={newProjectName}
+                                    onChange={(e) => setNewProjectName(e.target.value)}
+                                    placeholder="New project name"
+                                    className="flex-1 px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                />
+                                <button
+                                    onClick={() => {
+                                        if (!newProjectName.trim()) return;
+                                        const newProject = {
+                                            id: Date.now().toString(),
+                                            name: newProjectName.trim(),
+                                            dateCreated: new Date().toISOString()
+                                        };
+                                        setProjects(prev => [...prev, newProject]);
+                                        setNewProjectName('');
+                                    }}
+                                    className="p-1 text-gray-600 hover:text-gray-900"
+                                >
+                                    <icons.PlusCircle />
+                                </button>
+                            </div>
+
+                            <div className="space-y-1">
+                                {projects.map((project) => (
+                                    <div
+                                        key={project.id}
+                                        className={`flex items-center justify-between px-3 py-2 rounded-md cursor-pointer group ${
+                                            currentProjectId === project.id ? 'bg-blue-100/50 text-blue-600' : 'hover:bg-gray-50'
+                                        }`}
+                                        onClick={() => handleSelectProject(project)}
+                                    >
+                                        <span className="truncate">{project.name}</span>
+                                        <button
+                                        className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 rounded-md hover:bg-red-50"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setProjects(prev => prev.filter(p => p.id !== project.id));
+                                                if (currentProjectId === project.id) {
+                                                    setCurrentProjectId(null);
+                                                    setProjectData({
+                                                        title: "New Project",
+                                                        dateRange: "Project Date Range",
+                                                        phases: {},
+                                                        detailedTasks: {},
+                                                        completedTasks: {}
+                                                    });
+                                                }
+                                            }}
+                                        >
+                                            <icons.Trash2 />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex-1 p-6">
+                        <Card>
+                            <div className="p-6 border-b">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <EditableText
+                                        value={projectData.title}
+                                        onChange={(title) => setProjectData({...projectData, title})}
+                                        className="text-2xl font-bold"
+                                    />
+                                    <div className="mt-2">
+                                        <DateRangePicker
+                                            startDate={projectData.startDate}
+                                            endDate={projectData.endDate}
+                                            onChange={([startDate, endDate]) => {
+                                                setProjectData(prev => ({
+                                                    ...prev,
+                                                    startDate,
+                                                    endDate,
+                                                    dateRange: `${startDate ? new Date(startDate).toLocaleDateString() : ''} - ${endDate ? new Date(endDate).toLocaleDateString() : ''}`
+                                                }));
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setIsEditing(!isEditing)}
+                                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                    >
+                                        {isEditing ? "View Mode" : "Edit Mode"}
+                                    </button>
+                                    <button
+                                        onClick={saveAsHTML}
+                                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                                    >
+                                        Save as HTML
+                                    </button>
+                                    <button
+                                        onClick={exportData}
+                                        className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+                                    >
+                                        Export JSON
+                                    </button>
+                                    <label className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 cursor-pointer">
+                                        Import JSON
+                                        <input
+                                            type="file"
+                                            accept=".json"
+                                            onChange={importData}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    
+
+                        <div className="p-6">
+                            {isEditing ? (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center">
+                                        <h2 className="text-xl font-semibold">Project Phases</h2>
+                                        <button
+                                            onClick={addPhase}
+                                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        >
+                                            Add Phase
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {Object.entries(projectData.phases).map(([phaseId, phase]) => (
+                                            <PhaseEditor
+                                                key={phaseId}
+                                                phase={phase}
+                                                projectStartDate={projectData.startDate || ''}
+                                                projectEndDate={projectData.endDate || ''}
+                                                onPhaseChange={(updatedPhase) => {
+                                                    // Only check for overlap if we have dates
+                                                    if (updatedPhase.startDate && updatedPhase.endDate) {
+                                                        const hasOverlap = Object.entries(projectData.phases).some(([currentPhaseId, currentPhase]) => {
+                                                            if (currentPhaseId === phaseId) return false;
+                                                            if (!currentPhase.startDate || !currentPhase.endDate) return false;
+                                                            
+                                                            return (
+                                                                (updatedPhase.startDate <= currentPhase.endDate) &&
+                                                                (updatedPhase.endDate >= currentPhase.startDate)
+                                                            );
+                                                        });
+
+                                                        if (hasOverlap) {
+                                                            alert('Phase dates overlap with existing phases!');
+                                                            return;
+                                                        }
+                                                    }
+
+                                                    setProjectData(prev => ({
+                                                        ...prev,
+                                                        phases: {
+                                                            ...prev.phases,
+                                                            [phaseId]: updatedPhase
+                                                        }
+                                                    }));
+                                                }}
+                                                onDelete={() => {
+                                                    const newPhases = { ...projectData.phases };
+                                                    delete newPhases[phaseId];
+                                                    setProjectData(prev => ({
+                                                        ...prev,
+                                                        phases: newPhases
+                                                    }));
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                // View Mode
+                                <div>
+                                    {/* Progress Timeline */}
+                                    <div className="relative flex justify-between mb-12">
+                                        <div className="absolute h-1 bg-gray-200 left-0 right-0 top-4"></div>
+                                        <div 
+                                            className="absolute h-1 bg-blue-500 left-0 top-4 transition-all" 
+                                            style={{ width: `${calculateProjectProgress(projectData.phases)}%` }}
+                                        ></div>
+                                        {Object.values(projectData.phases).map((phase, index) => (
+                                            <div key={index} className="relative flex flex-col items-center z-10">
+                                                <div className="w-8 h-8 bg-white rounded-full border-2 border-blue-500 flex items-center justify-center">
+                                                    {phase.icon}
+                                                </div>
+                                                <div className="mt-2 text-sm text-center">
+                                                    <div className="font-semibold">{phase.date}</div>
+                                                    <div className="text-gray-500">{phase.title}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+
+                                    {/* Phase Grid */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                                        {Object.entries(projectData.phases).map(([phaseId, phase]) => (
+                                            <button
+                                                key={phaseId}
+                                                onClick={() => setActivePhase(phaseId)}
+                                                className={`p-4 rounded-lg text-left transition-all ${
+                                                    activePhase === phaseId 
+                                                        ? 'bg-blue-50 border-blue-200 border-2' 
+                                                        : 'bg-gray-50 border-gray-200 border hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                <div className="text-xl mb-1">{phase.icon}</div>
+                                                <div className="font-semibold">{phase.title}</div>
+                                                <div className="text-sm text-gray-500">{phase.date}</div>
+                                                <div className="mt-2 bg-gray-200 rounded-full h-2">
+                                                    <div 
+                                                        className="bg-blue-500 rounded-full h-2 transition-all"
+                                                        style={{ width: `${calculatePhaseProgress(phase)}%` }}
+                                                    />
+                                                </div>
+                                                <div className="text-sm text-gray-500 mt-1">
+                                                    {calculatePhaseProgress(phase)}% complete
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Active Phase Tasks */}
+                                    {activePhase && projectData.phases[activePhase] && (
+                                        <Card className="mt-6">
+                                            <div className="p-4 border-b">
+                                                <h2 className="text-lg font-semibold flex items-center gap-2">
+                                                    {projectData.phases[activePhase].icon} {projectData.phases[activePhase].title} Tasks
+                                                </h2>
+                                            </div>
+                                            <div className="p-4 space-y-4">
+                                                {projectData.phases[activePhase].tasks?.map((task) => (
+                                                    <div key={task.id} className="border rounded-lg">
+                                                        <button
+                                                            onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+                                                            className="w-full p-4 flex items-center justify-between hover:bg-gray-50"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={projectData.completedTasks[task.id] || false}
+                                                                    onChange={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const isCompleted = !projectData.completedTasks[task.id];
+                                                                        
+                                                                        // If the task has steps, update all steps to match the task's completion status
+                                                                        const newTasks = [...projectData.phases[activePhase].tasks];
+                                                                        const taskIndex = newTasks.findIndex(t => t.id === task.id);
+                                                                        
+                                                                        if (task.steps?.length) {
+                                                                            const updatedSteps = task.steps.map(step => ({
+                                                                                ...step,
+                                                                                completed: isCompleted
+                                                                            }));
+                                                                            newTasks[taskIndex] = { ...task, steps: updatedSteps };
+                                                                        }
+
+                                                                        setProjectData(prev => ({
+                                                                            ...prev,
+                                                                            phases: {
+                                                                                ...prev.phases,
+                                                                                [activePhase]: {
+                                                                                    ...prev.phases[activePhase],
+                                                                                    tasks: newTasks
+                                                                                }
+                                                                            },
+                                                                            completedTasks: {
+                                                                                ...prev.completedTasks,
+                                                                                [task.id]: isCompleted
+                                                                            }
+                                                                        }));
+                                                                    }}
+                                                                    className="w-5 h-5"
+                                                                />
+                                                                <span className={projectData.completedTasks[task.id] ? 'line-through text-gray-400' : ''}>
+                                                                    {task.title || task.name}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                                                                {task.startDate && task.endDate && (
+                                                                    <span>⏱️ {calculateDuration(task.startDate, task.endDate)}</span>
+                                                                )}
+                                                                {expandedTask === task.id ? '🔼' : '🔽'}
+                                                            </div>
+                                                        </button>
+                                                        {expandedTask === task.id && (
+                                                            <div className="p-4 border-t bg-gray-50">
+                                                                {task.description && (
+                                                                    <div className="mb-4">
+                                                                        <p className="text-gray-600">{task.description}</p>
+                                                                    </div>
+                                                                )}
+                                                                {task.steps?.length > 0 && (
+                                                                    <>
+                                                                        <h4 className="font-medium mb-2">Implementation Steps:</h4>
+                                                                        <ul className="space-y-2">
+                                                                            {task.steps.map((step, index) => (
+                                                                                <li key={index} className="flex items-center gap-2 text-gray-600">
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        className="w-4 h-4"
+                                                                                        checked={step.completed || false}
+                                                                                        onChange={() => {
+                                                                                            const newSteps = [...task.steps];
+                                                                                            newSteps[index] = { ...step, completed: !step.completed };
+                                                                                            // Check if all steps are now completed
+                                                                                            const allStepsCompleted = newSteps.every(s => s.completed);
+                                                                                            const newTasks = [...projectData.phases[activePhase].tasks];
+                                                                                            const taskIndex = newTasks.findIndex(t => t.id === task.id);
+                                                                                            newTasks[taskIndex] = { ...task, steps: newSteps };
+                                                                                            
+                                                                                            setProjectData(prev => ({
+                                                                                                ...prev,
+                                                                                                phases: {
+                                                                                                    ...prev.phases,
+                                                                                                    [activePhase]: {
+                                                                                                        ...prev.phases[activePhase],
+                                                                                                        tasks: newTasks
+                                                                                                    }
+                                                                                                },
+                                                                                                completedTasks: {
+                                                                                                    ...prev.completedTasks,
+                                                                                                    [task.id]: allStepsCompleted
+                                                                                                }
+                                                                                            }));
+                                                                                        }}
+                                                                                    />
+                                                                                    <span className={step.completed ? 'line-through text-gray-400' : ''}>
+                                                                                        {step.text || step}
+                                                                                    </span>
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </>
+                                                                )}
+                                                                {task.details && (
+                                                                    <>
+                                                                        <h4 className="font-medium mb-2">Details:</h4>
+                                                                        <div dangerouslySetInnerHTML={{ __html: task.details }} />
+                                                                    </>
+                                                                )}
+                                                                {task.tips?.length > 0 && (
+                                                                    <>
+                                                                        <h4 className="font-medium mt-4 mb-2">Tips & Best Practices:</h4>
+                                                                        <ul className="list-disc list-inside space-y-1">
+                                                                            {task.tips.map((tip, index) => (
+                                                                                <li key={index}>{tip}</li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </>
+                                                                )}
+                                                                {task.deliverables?.length > 0 && (
+                                                                    <>
+                                                                        <h4 className="font-medium mt-4 mb-2">Deliverables:</h4>
+                                                                        <ul className="list-disc list-inside space-y-1">
+                                                                            {task.deliverables.map((deliverable, index) => (
+                                                                                <li key={index}>{deliverable}</li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Card>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        </Card>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(
+            <React.StrictMode>
+                <ProjectPlan />
+            </React.StrictMode>
+        );
+    </script>
+</body>
+</html>
