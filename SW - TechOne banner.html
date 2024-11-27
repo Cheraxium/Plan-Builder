@@ -127,9 +127,11 @@
     .dropdown-content {
         display: none;
         position: absolute;
+	right: 0;
         background-color: rgb(108 181 216);
         width: 100%;
-        z-index: 1000;
+	box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        z-index: 100;
     }
 
     .dropdown-content.show {
@@ -156,7 +158,25 @@
  padding-left:10px !important;
 }
 
+.dropdown-content a {
+        color: #001F3B;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
 
+    .dropdown-content a:hover {
+        background-color: rgba(255,255,255,0.2);
+    }
+
+/* Icons */
+    .icon {
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+    }
 
 
     /* Media query for mobile */
@@ -184,7 +204,7 @@
             background-color: rgba(0, 0, 0, 0.1);
         }
 	    /* Logo */
-	 #sw-header .header-site-logo a{
+	.header-site-logo>a {
 	  background-size:cover;
 	  width:161px;
 	  height:64px;
@@ -197,32 +217,80 @@
         <div id="toolbar-quicklinks-drop-down">
             <!-- Mobile Dropdown -->
             <div class="mobile-dropdown">
-                <button class="dropdown-button" onclick="toggleDropdown()">Quick Links ▼</button>
+                <button class="dropdown-button">
+                    Quick Links ▼
+                </button>
                 <div class="dropdown-content" id="quickLinksDropdown">
-                    <a href="https://www.shoalwater.nsw.gov.au/">Shoalhaven City Council</a>
-                    <a href="#">After Hours Emergencies</a>
-                    <a href="#">Contact Us</a>
-                    <a href="tel:+61244293214">(02) 4429 3214</a>
+                    <a href="#">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        Shoalhaven City Council
+                    </a>
+                    <a href="#" class="emergency-link">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        After Hours Emergencies
+                    </a>
+                    <a href="#">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        Contact Us
+                    </a>
+                    <a href="tel:+61244293214">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        </svg>
+                        (02) 4429 3214
+                    </a>
                 </div>
             </div>
 
             <!-- Desktop Links -->
             <ul class="quicklinks-list">
-                <li style="float: right;">
-                    <a href="tel:+61244293214">(02) 4429 3214</a>
+                <li style="margin-right: auto;">
+                    <a href="#">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        Shoalhaven City Council
+                    </a>
                 </li>
-                <li style="float: right;">
-                    <a href="#">Contact Us</a>
+                <li>
+                    <a href="tel:+61244293214">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        </svg>
+                        (02) 4429 3214
+                    </a>
                 </li>
-                <li style="float: right; background-color: #fdbe00; padding: 5px;">
-                    <a href="#">After Hours Emergencies</a>
+                <li>
+                    <a href="#">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        Contact Us
+                    </a>
                 </li>
-                <li style="float: left;">
-                    <a href="#">Shoalhaven City Council</a>
+                <li>
+                    <a href="#" class="emergency-link">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        After Hours Emergencies
+                    </a>
+                </li>
+                <li>
+                    <button class="dropdown-button" onclick="toggleDropdown()">
+                        Quick Links ▼
+                    </button>
                 </li>
             </ul>
         </div>
     </div>
+</div>
 
 
 	<div class="header-outer-container">
