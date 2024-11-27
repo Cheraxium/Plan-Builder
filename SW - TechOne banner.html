@@ -153,6 +153,8 @@
         cursor: pointer;
         font-size: 16px;
         color: #001F3B;
+  	float:right;
+ }
     }
 
     .dropdown-content {
@@ -231,7 +233,9 @@
             margin-top: 10px;
             margin-bottom: 1px;
             margin-left: 10px;
-            width: 80%;
+            width: 305px
+	    left:252px;
+	    top:27px;
             transform: translatex(0px) translatey(0px);
         }
     }
@@ -244,7 +248,13 @@
             <div class="mobile-dropdown">
                 <button class="dropdown-button" onclick="toggleDropdown()">Quick Links ▼</button>
                 <div class="dropdown-content" id="quickLinksDropdown">
-                    <a href="https://www.shoalwater.nsw.gov.au/">Shoalhaven City Council</a>
+                    <a href="https://www.shoalwater.nsw.gov.au/">
+			<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+			    <polyline points="15 3 21 3 21 9"/>
+			    <line x1="10" y1="14" x2="21" y2="3"/>
+			</svg>
+			    Shoalhaven City Council</a>
                     <a href="#">After Hours Emergencies</a>
                     <a href="#">Contact Us</a>
                     <a href="tel:+61244293214">(02) 4429 3214</a>
@@ -254,7 +264,13 @@
             <!-- Desktop Links -->
             <ul class="quicklinks-list">
                 <li style="float: right;">
-                    <a href="tel:+61244293214">(02) 4429 3214</a>
+                    <a href="tel:+61244293214">
+			<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+			    <polyline points="15 3 21 3 21 9"/>
+			    <line x1="10" y1="14" x2="21" y2="3"/>
+			</svg>
+			    (02) 4429 3214</a>
                 </li>
                 <li style="float: right;">
                     <a href="#">Contact Us</a>
