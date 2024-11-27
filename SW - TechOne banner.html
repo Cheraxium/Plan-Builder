@@ -154,7 +154,7 @@
         font-size: 16px;
         color: #001F3B;
  }
-    }
+    
 
     .dropdown-content {
         display: none;
@@ -245,7 +245,7 @@
 	 }
 	 
 	 /* Dropdown button (active) */
-	 #toolbar-quicklinks-drop-down .mobile-dropdown .dropdown-button:active{
+	 #toolbar-quicklinks-drop-down .mobile-dropdown .dropdown-button.active{
 	  background-color:#b3fbff;
 	 }
 
@@ -263,7 +263,6 @@
 	  width:276px;
 	  transform:translatex(469px) translatey(22px);
 	  right:426px;
-	  a:a;
 	 }
 	 
 	 /* Toolbar outer container */
@@ -281,16 +280,32 @@
             <div class="mobile-dropdown">
                 <button class="dropdown-button" onclick="toggleDropdown()">Quick Links ▼</button>
                 <div class="dropdown-content" id="quickLinksDropdown">
-                    <a href="https://www.shoalwater.nsw.gov.au/">
+                    <a href="https://www.shoalhaven.nsw.gov.au/">
 			<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 			    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
 			    <polyline points="15 3 21 3 21 9"/>
 			    <line x1="10" y1="14" x2="21" y2="3"/>
 			</svg>
 			    Shoalhaven City Council</a>
-                    <a href="#">After Hours Emergencies</a>
-                    <a href="#">Contact Us</a>
-                    <a href="tel:+61244293214">(02) 4429 3214</a>
+                <a href="tel:+61244293214">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    (02) 4429 3214</a>
+                    
+                    <a href="https://www.shoalwater.nsw.gov.au/Contact-us">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                        Contact Us</a>
+                    <a href="https://www.shoalwater.nsw.gov.au/Emergencies">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        After Hours Emergencies</a>
+                    
                 </div>
             </div>
 
@@ -298,21 +313,35 @@
             <ul class="quicklinks-list">
                 <li style="float: right;">
                     <a href="tel:+61244293214">
-			<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-			    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-			    <polyline points="15 3 21 3 21 9"/>
-			    <line x1="10" y1="14" x2="21" y2="3"/>
-			</svg>
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
 			    (02) 4429 3214</a>
                 </li>
                 <li style="float: right;">
-                    <a href="#">Contact Us</a>
+                    <a href="https://www.shoalwater.nsw.gov.au/Contact-us">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                        Contact Us</a>
                 </li>
-                <li style="float: right; background-color: #fdbe00; padding: 5px;">
-                    <a href="#">After Hours Emergencies</a>
+                <li style="float: right;">
+                    <a href="https://www.shoalwater.nsw.gov.au/Emergencies">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        After Hours Emergencies</a>
                 </li>
                 <li style="float: left;">
-                    <a href="#">Shoalhaven City Council</a>
+                    <a href="https://www.shoalhaven.nsw.gov.au/">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                            <polyline points="15 3 21 3 21 9"/>
+                            <line x1="10" y1="14" x2="21" y2="3"/>
+                        </svg>
+                        Shoalhaven City Council</a>
                 </li>
             </ul>
         </div>
@@ -333,16 +362,20 @@
 <script>
 function toggleDropdown() {
     const dropdown = document.getElementById("quickLinksDropdown");
+    const button = document.querySelector('.dropdown-button');
     dropdown.classList.toggle("show");
+    button.classList.toggle("active");  // Add this line
 
     // Close the dropdown if clicked outside
     window.onclick = function(event) {
         if (!event.target.matches('.dropdown-button')) {
             const dropdowns = document.getElementsByClassName("dropdown-content");
+            const buttons = document.getElementsByClassName("dropdown-button");
             for (let i = 0; i < dropdowns.length; i++) {
                 const openDropdown = dropdowns[i];
                 if (openDropdown.classList.contains('show')) {
                     openDropdown.classList.remove('show');
+                    buttons[i].classList.remove('active');  // Add this line
                 }
             }
         }
