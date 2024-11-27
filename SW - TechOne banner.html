@@ -78,31 +78,123 @@
 		padding: 10px 0;
 		grid-area: footer;
 	}
+	/* New mobile dropdown styles */
+    .toolbar-outer-container {
+        display: flex;
+        width: 100vw;
+        justify-content: center;
+        background-color: rgb(108 181 216);
+    }
+
+    #toolbar-quicklinks-drop-down {
+        width: 1200px;
+    }
+
+    .quicklinks-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        display: block;
+        align-items: center;
+        font-weight: 400;
+        font-size: 16px;
+    }
+
+    .quicklinks-list li {
+        margin: 0 5px;
+    }
+
+    .quicklinks-list a {
+        text-decoration: none;
+        color: #000000;
+    }
+
+    .mobile-dropdown {
+        display: none;
+        position: relative;
+    }
+
+    .dropdown-button {
+        background-color: rgb(108 181 216);
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        width: 100%;
+        text-align: left;
+        font-size: 16px;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: rgb(108 181 216);
+        width: 100%;
+        z-index: 1000;
+    }
+
+    .dropdown-content.show {
+        display: block;
+    }
+
+    /* Media query for mobile */
+    @media screen and (max-width: 768px) {
+        .quicklinks-list {
+            display: none;
+        }
+
+        .mobile-dropdown {
+            display: block;
+        }
+
+        #toolbar-quicklinks-drop-down {
+            width: 100%;
+        }
+
+        .dropdown-content a {
+            padding: 12px 16px;
+            display: block;
+            text-decoration: none;
+            color: #000000;
+        }
+
+        .dropdown-content a:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+    }
 </style>
 <div id="sw-header">
-	<div class="toolbar-outer-container" style="
-		display: flex;
-		width: 100vw;
-		justify-content: center;
-		background-color: rgb(108 181 216);
-	">
-		<div id="toolbar-quicklinks-drop-down" style="width: 1200px;">
-			<ul style="list-style-type: none;padding: 0;margin: 0;display: block;/* justify-content: space-around; */align-items: center;/* flex-direction: row-reverse; */font-weight: 400;font-size: 16px;">
-				<li style="float: right;margin: 0 5px;margin-right: 0;">
-					<a href="tel:+61244293214" style="text-decoration: none; color: #000000;">(02) 4429 3214</a>
-				</li>
-				<li style="margin: 0 5px;float: right;">
-					<a href="#" style="text-decoration: none; color: #000000;">Contact Us</a>
-				</li>
-				<li style="margin: 0 5px;background-color: #fdbe00;padding: 5px;float: right;">
-					<a href="#" style="text-decoration: none; color: #000000;">After Hours Emergencies</a>
-				</li>
-				<li style="margin: 0 5px;float: left;">
-					<a href="#" style="text-decoration: none; color: #000000;">Shoalhaven City Council</a>
-				</li>
-			</ul>
-		</div>
-	</div>
+    <div class="toolbar-outer-container">
+        <div id="toolbar-quicklinks-drop-down">
+            <!-- Mobile Dropdown -->
+            <div class="mobile-dropdown">
+                <button class="dropdown-button" onclick="toggleDropdown()">Quick Links ▼</button>
+                <div class="dropdown-content" id="quickLinksDropdown">
+                    <a href="https://www.shoalwater.nsw.gov.au/">Shoalhaven City Council</a>
+                    <a href="#">After Hours Emergencies</a>
+                    <a href="#">Contact Us</a>
+                    <a href="tel:+61244293214">(02) 4429 3214</a>
+                </div>
+            </div>
+
+            <!-- Desktop Links -->
+            <ul class="quicklinks-list">
+                <li style="float: right;">
+                    <a href="tel:+61244293214">(02) 4429 3214</a>
+                </li>
+                <li style="float: right;">
+                    <a href="#">Contact Us</a>
+                </li>
+                <li style="float: right; background-color: #fdbe00; padding: 5px;">
+                    <a href="#">After Hours Emergencies</a>
+                </li>
+                <li style="float: left;">
+                    <a href="#">Shoalhaven City Council</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
 	<div class="header-outer-container">
 		<div class="header-container">
 			<div class="header-site-logo">
@@ -113,6 +205,27 @@
 		</div>
 	</div>
 </div>
+
+<script>
+function toggleDropdown() {
+    const dropdown = document.getElementById("quickLinksDropdown");
+    dropdown.classList.toggle("show");
+
+    // Close the dropdown if clicked outside
+    window.onclick = function(event) {
+        if (!event.target.matches('.dropdown-button')) {
+            const dropdowns = document.getElementsByClassName("dropdown-content");
+            for (let i = 0; i < dropdowns.length; i++) {
+                const openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+}
+</script>
+
 <div id="sw-footer">
 	<div class="footer-container clearfix">
 		<div class="grid grid-pad footer-secondary-links">
