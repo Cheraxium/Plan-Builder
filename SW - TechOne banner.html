@@ -1,84 +1,95 @@
 <style type="text/css">
-
-	#C2FormContent {
+    /* Base styles */
+    #C2FormContent {
         background: no-repeat scroll center 0 #001F3B;
         background-image: url("https://www.shoalwater.nsw.gov.au/files/oc-templates/00000000-0000-0000-0000-000000000000/336d5134-1902-4cae-8c26-a23da4cb4169/v/901/background-02-fade.jpg");
         background-size: 100%;
         background-position: center;
         background-color: rgb(0, 31, 59) !important;
-		display: grid;
-		grid-template-areas:
-			"header"
-			"main-content"
-			"footer";
-		grid-template-rows: auto 1fr auto;
+        display: grid;
+        grid-template-areas:
+            "header"
+            "main-content"
+            "footer";
+        grid-template-rows: auto 1fr auto;
     }
-	#FormsHeaderControl {
-		display: contents !important;
-	}
-	#TabsContainer {
-		margin-top: 40px !important;
-		margin-bottom: 40px !important;
-		grid-area: main-content;
-	}
-    #TabsContainer_TabsContainer {
-        width: 100%;
-    }
+
     #FormsHeaderControl {
+        display: contents !important;
         width: 100% !important;
         background-color: #001F3B !important;
     }
-    .header-outer-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            background-color: rgb(0, 31, 59);
+
+    #TabsContainer {
+        margin-top: 40px !important;
+        margin-bottom: 40px !important;
+        grid-area: main-content;
     }
+
+    #TabsContainer_TabsContainer {
+        width: 100%;
+    }
+
+    .header-outer-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        background-color: rgb(0, 31, 59);
+    }
+
     .header-container {
-        max-width:100vw;
+        max-width: 100vw;
         width: 1200px;
         justify-content: left;
     }
+
     .header-site-logo {
         padding: 0px 0px 0px 0px;
         margin: 20px 0px 20px 20px;
     }
-	.header-site-logo>a {
-		display: block;
-		background-image: url(https://www.shoalwater.nsw.gov.au/files/oc-templates/00000000-0000-0000-0000-000000000000/336d5134-1902-4cae-8c26-a23da4cb4169/v/901/white-logo-spritesheet.svg);
-		background-position: 0px 0px;
-		background-size: 300px 248px;
-		background-color: rgba(255, 255, 255, 0);
-		width: 300px;
-		height: 108px;
-	}
-	.visuallyhidden {
-		border: 0;
-		clip: rect(0 0 0 0);
-		height: 1px;
-		margin: -1px;
-		overflow: hidden;
-		padding: 0;
-		position: absolute;
-		width: 1px;
-		white-space: nowrap;
-	}
-	.consumerStyleWrapper #TabsContainer, .consumerStyleWrapper .linkedTabbedControl {
-		width: 1200px !important;
-	}
-	#sw-header {
-		grid-area: header;
-	}
-	#sw-footer {
-		width: 100%;
-		height: -100px;
-		background-color: rgb(0, 31, 59) !important;
-		text-align: center;
-		color: white;
-		padding: 10px 0;
-		grid-area: footer;
-	}
-	/* New mobile dropdown styles */
+
+    .header-site-logo>a {
+        display: block;
+        background-image: url(https://www.shoalwater.nsw.gov.au/files/oc-templates/00000000-0000-0000-0000-000000000000/336d5134-1902-4cae-8c26-a23da4cb4169/v/901/white-logo-spritesheet.svg);
+        background-position: 0px 0px;
+        background-size: 300px 248px;
+        background-color: rgba(255, 255, 255, 0);
+        width: 300px;
+        height: 108px;
+    }
+
+    .visuallyhidden {
+        border: 0;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+        white-space: nowrap;
+    }
+
+    .consumerStyleWrapper #TabsContainer,
+    .consumerStyleWrapper .linkedTabbedControl {
+        width: 1200px !important;
+    }
+
+    #sw-header {
+        grid-area: header;
+    }
+
+    #sw-footer {
+        width: 100%;
+        height: -100px;
+        background-color: rgb(0, 31, 59) !important;
+        text-align: center;
+        color: white;
+        padding: 10px 0;
+        grid-area: footer;
+    }
+
+    /* Toolbar and dropdown styles */
     .toolbar-outer-container {
         display: flex;
         width: 100vw;
@@ -88,6 +99,7 @@
 
     #toolbar-quicklinks-drop-down {
         width: 1200px;
+        position: relative;
     }
 
     .quicklinks-list {
@@ -109,61 +121,60 @@
         color: #000000;
     }
 
+    /* List Item styles */
+    #toolbar-quicklinks-drop-down ul > li {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    #toolbar-quicklinks-drop-down ul li {
+        display: inline-block;
+        transform: translatex(0px) translatey(0px) !important;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #toolbar-quicklinks-drop-down ul li:nth-child(3) {
+        padding-right: 10px !important;
+        padding-left: 10px !important;
+    }
+
+    /* Mobile dropdown styles */
     .mobile-dropdown {
         display: none;
         position: relative;
     }
 
     .dropdown-button {
-        background-color: rgb(108 181 216);
+        background-color: transparent;
         border: none;
         padding: 10px;
         cursor: pointer;
-        width: 100%;
-        text-align: left;
         font-size: 16px;
+        color: #001F3B;
     }
 
     .dropdown-content {
         display: none;
         position: absolute;
-	right: 0;
+        right: 0;
         background-color: rgb(108 181 216);
-        width: 100%;
-	box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        z-index: 100;
+        min-width: 200px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        z-index: 1000;
     }
 
     .dropdown-content.show {
         display: block;
     }
-	
+
     .emergency-link {
         background-color: #fdbe00;
         padding: 5px 10px;
         border-radius: 2px;
     }
-	/* List Item */
-#toolbar-quicklinks-drop-down ul > li{
- padding-top:5px;
- padding-bottom:5px;
-}
 
-/* List Item */
-#toolbar-quicklinks-drop-down ul li{
- display:inline-block;
- transform:translatex(0px) translatey(0px) !important;
- padding-left:10px;
- padding-right:10px;
-}
-
-/* List Item */
-#toolbar-quicklinks-drop-down ul li:nth-child(3){
- padding-right:10px !important;
- padding-left:10px !important;
-}
-
-.dropdown-content a {
+    .dropdown-content a {
         color: #001F3B;
         padding: 12px 16px;
         text-decoration: none;
@@ -176,13 +187,12 @@
         background-color: rgba(255,255,255,0.2);
     }
 
-/* Icons */
+    /* Icons */
     .icon {
         width: 16px;
         height: 16px;
         display: inline-block;
     }
-
 
     /* Media query for mobile */
     @media screen and (max-width: 768px) {
@@ -208,23 +218,24 @@
         .dropdown-content a:hover {
             background-color: rgba(0, 0, 0, 0.1);
         }
-	    /* Logo */
-	.header-site-logo>a {
-	  background-size:cover;
-	  width:161px;
-	  height:64px;
-	 }
-	    
-	 #quickLinksDropdown{
-	  margin-top:10px;
-	  margin-bottom:1px;
-	  margin-left:10px;
-	  width:80%;
-	  transform:translatex(0px) translatey(0px);
-	 }
 
+        /* Logo mobile styles */
+        .header-site-logo>a {
+            background-size: cover;
+            width: 161px;
+            height: 64px;
+        }
+
+        #quickLinksDropdown {
+            margin-top: 10px;
+            margin-bottom: 1px;
+            margin-left: 10px;
+            width: 80%;
+            transform: translatex(0px) translatey(0px);
+        }
     }
 </style>
+
 <div id="sw-header">
     <div class="toolbar-outer-container">
         <div id="toolbar-quicklinks-drop-down">
@@ -252,7 +263,7 @@
                         </svg>
                         (02) 4429 3214
                     </a>
-			<a href="#" class="emergency-link">
+                    <a href="#" class="emergency-link">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                         </svg>
@@ -303,20 +314,16 @@
             </ul>
         </div>
     </div>
-</div>
 
-
-
-
-	<div class="header-outer-container">
-		<div class="header-container">
-			<div class="header-site-logo">
-				<a href="https://www.shoalwater.nsw.gov.au/Home" lang="en-AU">
-					<span class="visuallyhidden">Shoalhaven City Council - Home - Logo</span>
-				</a>
-			</div>
-		</div>
-	</div>
+    <div class="header-outer-container">
+        <div class="header-container">
+            <div class="header-site-logo">
+                <a href="https://www.shoalwater.nsw.gov.au/Home" lang="en-AU">
+                    <span class="visuallyhidden">Shoalhaven City Council - Home - Logo</span>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
